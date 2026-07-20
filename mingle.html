@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mingle — practice small talk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF3EA;
+    --ink:#2B2420;
+    --coral:#E8734A;
+    --sage:#7C9473;
+    --amber:#E8B23D;
+    --rose:#C67171;
+    --card:#FFFFFF;
+    --dim:#8C8074;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 60px;
+  }
+  .app{ width:100%; max-width:600px; }
+
+  header{ text-align:center; margin-bottom:28px; }
+  header h1{
+    font-family:'Instrument Serif', serif;
+    font-style:italic;
+    font-size:46px;
+    color:var(--coral);
+  }
+  header p{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--dim);
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-top:2px;
+  }
+
+  .error-banner{
+    background:var(--rose);
+    color:#fff;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    padding:12px 16px;
+    margin-bottom:16px;
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .error-banner button{
+    background:#fff;
+    color:var(--rose);
+    border:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    font-weight:700;
+    padding:5px 10px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+
+  /* ---------- Home ---------- */
+  .category-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .category-btn{
+    background:var(--card);
+    border:2px solid transparent;
+    padding:20px 14px;
+    text-align:left;
+    cursor:pointer;
+    font-family:'Plus Jakarta Sans', sans-serif;
+  }
+  .category-btn:hover{ border-color:var(--coral); }
+  .category-btn .emoji{ font-size:22px; display:block; margin-bottom:6px; }
+  .category-btn .label{ font-weight:600; font-size:14px; }
+  .category-btn.surprise{ grid-column:1 / -1; background:var(--coral); color:#fff; text-align:center; }
+  .category-btn.surprise .label{ font-size:15px; }
+
+  .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--dim);
+    margin-bottom:12px;
+  }
+
+  .history-item{
+    background:var(--card);
+    padding:16px 18px;
+    margin-bottom:10px;
+    cursor:pointer;
+  }
+  .history-top{ display:flex; justify-content:space-between; align-items:baseline; }
+  .history-scene{ font-weight:600; font-size:14px; }
+  .history-date{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--dim); }
+  .history-tip{ font-size:13px; color:var(--dim); margin-top:6px; font-style:italic; }
+  .empty-history{ color:var(--dim); font-size:13.5px; text-align:center; padding:20px 0; }
+
+  /* ---------- Session ---------- */
+  .back-link{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--dim);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    background:none;
+    border:none;
+    cursor:pointer;
+    margin-bottom:14px;
+    padding:0;
+  }
+
+  .scene-card{
+    background:var(--coral);
+    color:#fff;
+    padding:16px 20px;
+    margin-bottom:18px;
+    font-family:'Instrument Serif', serif;
+    font-style:italic;
+    font-size:17px;
+    line-height:1.4;
+  }
+
+  .bubble-row{ display:flex; margin-bottom:6px; }
+  .bubble-row.char{ justify-content:flex-start; }
+  .bubble-row.user{ justify-content:flex-end; }
+  .bubble{
+    max-width:78%;
+    padding:12px 16px;
+    font-size:14.5px;
+    line-height:1.5;
+  }
+  .bubble.char{ background:var(--card); border-top-left-radius:2px; }
+  .bubble.user{ background:var(--ink); color:var(--bg); border-top-right-radius:2px; }
+
+  .coach-note{
+    max-width:78%;
+    margin-left:auto;
+    margin-bottom:16px;
+    padding:9px 14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    line-height:1.5;
+    border-left:3px solid var(--sage);
+  }
+  .coach-note.okay{ border-left-color:var(--amber); }
+  .coach-note.dead_end{ border-left-color:var(--rose); }
+
+  .mic-area{
+    text-align:center;
+    margin-top:24px;
+    padding:20px 0;
+  }
+  #micBtn{
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    border:none;
+    background:var(--coral);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .12s ease, background .2s ease;
+  }
+  #micBtn:active{ transform:scale(0.94); }
+  #micBtn.listening{ background:var(--sage); animation:pulse 1.1s infinite; }
+  #micBtn.thinking{ background:var(--amber); cursor:wait; }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(124,148,115,0.4); }
+    70%{ box-shadow:0 0 0 16px rgba(124,148,115,0); }
+    100%{ box-shadow:0 0 0 0 rgba(124,148,115,0); }
+  }
+  #micBtn svg{ width:32px; height:32px; fill:#fff; }
+  #micStatus{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--dim);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:10px;
+  }
+
+  .end-scene-btn{
+    display:block;
+    margin:16px auto 0;
+    background:none;
+    border:none;
+    color:var(--dim);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    text-decoration:underline;
+    cursor:pointer;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+
+  /* ---------- Debrief ---------- */
+  .debrief-card{
+    background:var(--card);
+    padding:26px 24px;
+  }
+  .debrief-summary{
+    font-family:'Instrument Serif', serif;
+    font-size:19px;
+    line-height:1.5;
+    margin-bottom:20px;
+  }
+  .debrief-section{ margin-bottom:18px; }
+  .debrief-section h3{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin-bottom:8px;
+  }
+  .debrief-section.strengths h3{ color:var(--sage); }
+  .debrief-section.growth h3{ color:var(--amber); }
+  .debrief-section ul{ padding-left:18px; font-size:14px; line-height:1.6; }
+  .debrief-tip{
+    background:var(--bg);
+    padding:14px 16px;
+    font-size:14px;
+    line-height:1.5;
+    border-left:3px solid var(--coral);
+    margin-top:6px;
+  }
+  .practice-again-btn{
+    width:100%;
+    margin-top:22px;
+    background:var(--coral);
+    color:#fff;
+    border:none;
+    padding:15px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    cursor:pointer;
+  }
+
+  footer{
+    margin-top:36px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--dim);
+    text-align:center;
+    letter-spacing:0.5px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Mingle</h1>
+    <p>practice small talk that doesn't go dead</p>
+  </header>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div id="homeView">
+    <div class="section-label">Pick a scene</div>
+    <div class="category-grid">
+      <button class="category-btn" data-cat="coffee shop or checkout line"><span class="emoji">☕</span><span class="label">Coffee shop</span></button>
+      <button class="category-btn" data-cat="work hallway or elevator with a coworker"><span class="emoji">💼</span><span class="label">Work</span></button>
+      <button class="category-btn" data-cat="a party or social gathering"><span class="emoji">🎉</span><span class="label">Party</span></button>
+      <button class="category-btn" data-cat="a waiting room or line"><span class="emoji">⏳</span><span class="label">Waiting room</span></button>
+      <button class="category-btn surprise" data-cat=""><span class="label">🎲 Surprise me</span></button>
+    </div>
+    <div class="section-label">Past sessions</div>
+    <div id="historyList"></div>
+  </div>
+
+  <div id="sessionView" style="display:none;">
+    <button class="back-link" id="backBtn">← all scenes</button>
+    <div class="scene-card" id="sceneCard"></div>
+    <div id="conversationEl"></div>
+    <div class="mic-area">
+      <button id="micBtn" aria-label="Speak your reply">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </button>
+      <div id="micStatus">tap to reply</div>
+    </div>
+    <button class="end-scene-btn" id="endSceneBtn">End this scene early</button>
+  </div>
+
+  <div id="debriefView" style="display:none;"></div>
+
+  <footer>no sign-up · everything stays on this device</footer>
+</div>
+
+<script>
+// ====== CONFIG — reuse the SAME Cloudflare Worker URL as Praatje, no new one needed ======
+const WORKER_URL = "PASTE_YOUR_WORKER_URL_HERE";
+// ============================================================================
+
+const STORAGE_KEY = 'mingle_history_v1';
+let history_log = [];
+
+let session = null; // { sceneSetup, messages: [{role, content}], turnCount, ended }
+let isProcessing = false;
+
+function loadHistory(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    history_log = raw ? JSON.parse(raw) : [];
+  } catch(e) { history_log = []; }
+}
+function saveHistory(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(history_log)); } catch(e) { /* not fatal */ }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showError(msg, retryFn){
+  const banner = document.getElementById('errorBanner');
+  banner.innerHTML = '';
+  banner.appendChild(document.createTextNode(msg));
+  if (retryFn) {
+    const btn = document.createElement('button');
+    btn.textContent = 'Retry';
+    btn.onclick = () => { banner.style.display = 'none'; retryFn(); };
+    banner.appendChild(btn);
+  }
+  banner.style.display = 'flex';
+}
+function clearError(){ document.getElementById('errorBanner').style.display = 'none'; }
+
+function extractJsonObject(raw){
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1 || end < start) return null;
+  return raw.slice(start, end + 1);
+}
+
+// ---------- Home ----------
+function showView(which){
+  document.getElementById('homeView').style.display = which === 'home' ? 'block' : 'none';
+  document.getElementById('sessionView').style.display = which === 'session' ? 'block' : 'none';
+  document.getElementById('debriefView').style.display = which === 'debrief' ? 'block' : 'none';
+}
+
+function renderHistory(){
+  const listEl = document.getElementById('historyList');
+  if (history_log.length === 0) {
+    listEl.innerHTML = `<div class="empty-history">No sessions yet — pick a scene above to start.</div>`;
+    return;
+  }
+  listEl.innerHTML = '';
+  [...history_log].reverse().slice(0, 15).forEach(h => {
+    const el = document.createElement('div');
+    el.className = 'history-item';
+    el.innerHTML = `
+      <div class="history-top">
+        <div class="history-scene">${escapeHtml(h.sceneLabel)}</div>
+        <div class="history-date">${escapeHtml(h.date)}</div>
+      </div>
+      <div class="history-tip">${escapeHtml(h.tip || '')}</div>
+    `;
+    listEl.appendChild(el);
+  });
+}
+
+document.querySelectorAll('.category-btn').forEach(btn => {
+  btn.onclick = () => startSession(btn.dataset.cat);
+});
+
+// ---------- Session orchestration ----------
+async function startSession(category){
+  clearError();
+  session = { sceneSetup: '', category, messages: [], turnCount: 0, ended: false, sceneLabel: '' };
+  showView('session');
+  document.getElementById('sceneCard').textContent = 'Setting the scene…';
+  document.getElementById('conversationEl').innerHTML = '';
+  document.getElementById('micBtn').disabled = true;
+  document.getElementById('micStatus').textContent = 'loading…';
+
+  const systemPrompt = `You are running a small-talk practice simulator to help someone get more comfortable with casual conversation. Generate ONE realistic, everyday small-talk scenario — a common social situation where brief casual conversation with a stranger or acquaintance naturally happens.${category ? ' The scenario should be set in: ' + category + '.' : ' Pick any everyday scenario — coffee shop, elevator, dog park, checkout line, waiting room, gym, work hallway, party, anything realistic.'}
+
+Set the scene in one warm, concise sentence (where she is, who's there). Then write the character's natural opening small-talk line — the kind of casual thing a stranger or acquaintance might actually say to start a brief exchange. Keep it short and natural.
+
+Respond with ONLY valid JSON, nothing else: {"scene_setup":"one sentence setting the scene","scene_label":"a short 3-5 word label for this scene, like 'Coffee shop line'","character_opener":"the opening line"}`;
+
+  try {
+    const parsed = await callClaude(systemPrompt, [{ role: 'user', content: 'Start the scene.' }]);
+    session.sceneSetup = parsed.scene_setup;
+    session.sceneLabel = parsed.scene_label || 'Practice scene';
+    session.messages.push({ role: 'assistant', content: parsed.character_opener });
+    document.getElementById('sceneCard').textContent = parsed.scene_setup;
+    renderConversation();
+    document.getElementById('micBtn').disabled = false;
+    document.getElementById('micStatus').textContent = 'tap to reply';
+  } catch(err) {
+    showError('Could not start the scene — ' + err.message, () => startSession(category));
+    document.getElementById('sceneCard').textContent = 'Something went wrong.';
+  }
+}
+
+function renderConversation(){
+  const el = document.getElementById('conversationEl');
+  el.innerHTML = '';
+  session.messages.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'bubble-row ' + (m.role === 'assistant' ? 'char' : 'user');
+    row.innerHTML = `<div class="bubble ${m.role === 'assistant' ? 'char' : 'user'}">${escapeHtml(m.content)}</div>`;
+    el.appendChild(row);
+    if (m.role === 'user' && m.coachNote) {
+      const note = document.createElement('div');
+      note.className = 'coach-note ' + (m.coachSentiment || 'good');
+      note.textContent = m.coachNote;
+      el.appendChild(note);
+    }
+  });
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+async function callClaude(systemPrompt, messages){
+  const response = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 700,
+      system: systemPrompt,
+      messages: messages
+    })
+  });
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    throw new Error('HTTP ' + response.status + (errText ? ': ' + errText.slice(0,150) : ''));
+  }
+  const data = await response.json();
+  const textBlock = data.content.find(c => c.type === 'text');
+  let raw = textBlock ? textBlock.text : '{}';
+  raw = raw.replace(/```json|```/g, '').trim();
+  let parsed = null;
+  try { parsed = JSON.parse(raw); }
+  catch(e) {
+    const extracted = extractJsonObject(raw);
+    if (extracted) { try { parsed = JSON.parse(extracted); } catch(e2) { parsed = null; } }
+  }
+  if (!parsed) throw new Error('Could not parse a response.');
+  return parsed;
+}
+
+async function respondToCharacter(userText){
+  session.turnCount++;
+  session.messages.push({ role: 'user', content: userText });
+  renderConversation();
+
+  const systemPrompt = `You are playing a character in a small-talk practice simulation, helping someone practice casual conversation skills. The scene: ${session.sceneSetup}
+
+Stay fully in character having a brief, realistic small-talk exchange. React naturally and authentically to what the user just said:
+- If their reply invites more conversation (asks something back, adds detail, shows interest), respond warmly and keep it going naturally.
+- If their reply is a dead-end (very short, closed off, gives you nothing to build on), respond the way a real person naturally would — a bit more reserved, a slightly flatter beat, without being rude. This gives honest, realistic feedback through the conversation itself.
+- Keep replies SHORT and natural — this is small talk, 1-2 sentences max.
+- This is turn ${session.turnCount} of the conversation. After about 4-6 turns, or if it's clearly run its course, wrap up warmly and naturally like a person excusing themselves, and set "ending" to true.
+
+Separately, give a short coaching note on the user's LAST reply specifically — warm, encouraging, specific. Note what worked, or if it was a dead-end, gently point out what happened and suggest one concrete way to extend it next time. Supportive-friend tone, never harsh or clinical.
+
+Respond with ONLY valid JSON, nothing else: {"character_reply":"...","coach_note":"...","coach_sentiment":"good","ending":false}
+"coach_sentiment" must be exactly one of: "good", "okay", "dead_end".`;
+
+  const claudeMessages = session.messages.map(m => ({ role: m.role, content: m.content }));
+
+  try {
+    const parsed = await callClaude(systemPrompt, claudeMessages);
+    session.messages[session.messages.length - 1].coachNote = parsed.coach_note;
+    session.messages[session.messages.length - 1].coachSentiment = parsed.coach_sentiment;
+    session.messages.push({ role: 'assistant', content: parsed.character_reply });
+    renderConversation();
+
+    speakText(parsed.character_reply);
+
+    if (parsed.ending || session.turnCount >= 6) {
+      session.ended = true;
+      setTimeout(() => endSession(), 1200);
+    }
+  } catch(err) {
+    showError('Could not get a reply — ' + err.message, () => respondToCharacter(userText));
+  }
+}
+
+document.getElementById('endSceneBtn').onclick = () => endSession();
+document.getElementById('backBtn').onclick = () => { showView('home'); renderHistory(); };
+
+async function endSession(){
+  if (session.messages.length < 2) { showView('home'); renderHistory(); return; }
+  clearError();
+  document.getElementById('debriefView').innerHTML = `<div class="debrief-card"><div class="debrief-summary">Putting together your debrief…</div></div>`;
+  showView('debrief');
+
+  const transcript = session.messages.map(m => (m.role === 'assistant' ? 'Them: ' : 'You: ') + m.content).join('\n');
+
+  const systemPrompt = `The small-talk practice conversation has ended. Here's the full exchange:\n\n${transcript}\n\nWrite a warm, encouraging debrief of how this practice session went. Focus on real, observable patterns from the conversation, not generic advice. Be specific and kind — this person is working on getting more comfortable with small talk, so the tone should build confidence, not just critique.
+
+Respond with ONLY valid JSON, nothing else: {"summary":"2-3 sentences on how the conversation went overall","strengths":["specific thing she did well"],"growth_areas":["specific pattern to work on"],"tip":"one concrete, actionable tip to try in her next real conversation"}`;
+
+  try {
+    const parsed = await callClaude(systemPrompt, [{ role: 'user', content: 'Give me the debrief.' }]);
+    renderDebrief(parsed);
+    history_log.push({
+      date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      sceneLabel: session.sceneLabel,
+      tip: parsed.tip
+    });
+    saveHistory();
+  } catch(err) {
+    document.getElementById('debriefView').innerHTML = `<div class="debrief-card"><div class="debrief-summary">Couldn't put together a debrief this time — ${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+function renderDebrief(d){
+  const strengthsHtml = (d.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  const growthHtml = (d.growth_areas || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+  document.getElementById('debriefView').innerHTML = `
+    <div class="debrief-card">
+      <div class="debrief-summary">${escapeHtml(d.summary)}</div>
+      ${strengthsHtml ? `<div class="debrief-section strengths"><h3>What worked</h3><ul>${strengthsHtml}</ul></div>` : ''}
+      ${growthHtml ? `<div class="debrief-section growth"><h3>Worth trying next time</h3><ul>${growthHtml}</ul></div>` : ''}
+      <div class="debrief-tip">${escapeHtml(d.tip || '')}</div>
+      <button class="practice-again-btn" id="practiceAgainBtn">Practice another scene</button>
+    </div>
+  `;
+  document.getElementById('practiceAgainBtn').onclick = () => { showView('home'); renderHistory(); };
+}
+
+// ---------- Voice: browser speech recognition (no Gemini, no quota dependency) ----------
+const micBtn = document.getElementById('micBtn');
+const micStatus = document.getElementById('micStatus');
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.maxAlternatives = 1;
+} else {
+  showError('This browser does not support voice recognition. Try Chrome on desktop or Android.');
+}
+let isListening = false;
+let finalTranscript = '';
+let latestInterim = '';
+let userRequestedStop = false;
+let autoRestartCount = 0;
+const MAX_AUTO_RESTARTS = 5;
+
+micBtn.onclick = () => {
+  if (!recognition) return;
+  if (isProcessing || !session || session.ended) return;
+  if (isListening) {
+    userRequestedStop = true;
+    recognition.stop();
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  // Safari (especially iOS) only allows speech synthesis to start if it's tied directly
+  // to a user gesture — unlock it here, synchronously, on the tap itself.
+  const unlock = new SpeechSynthesisUtterance('');
+  unlock.volume = 0;
+  window.speechSynthesis.speak(unlock);
+
+  finalTranscript = '';
+  latestInterim = '';
+  userRequestedStop = false;
+  autoRestartCount = 0;
+  try { recognition.start(); } catch(e) { showError('Could not start the microphone: ' + e.message); }
+};
+
+if (recognition) {
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    micStatus.textContent = 'listening... tap again when done';
+  };
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      userRequestedStop = true;
+      isListening = false;
+      micBtn.classList.remove('listening');
+      micStatus.textContent = 'tap to reply';
+      showError('Microphone access was blocked. Allow the mic and try again.');
+    }
+    // other errors (no-speech, network blips) are handled uniformly in onend below
+  };
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+
+    // fold in anything still "in progress" (not yet finalized) before deciding what happens next
+    if (latestInterim.trim()) {
+      finalTranscript += latestInterim.trim() + ' ';
+      latestInterim = '';
+    }
+
+    if (!userRequestedStop && autoRestartCount < MAX_AUTO_RESTARTS) {
+      // recognition stopped on its own (a Chrome hiccup, not the user tapping stop) — resume automatically
+      autoRestartCount++;
+      try { recognition.start(); return; } catch(err) { /* fall through and finalize what we have */ }
+    }
+
+    const said = finalTranscript.trim();
+    finalTranscript = '';
+    if (said) {
+      respondToCharacter(said);
+    } else {
+      micStatus.textContent = 'tap to reply';
+    }
+  };
+  recognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + ' ';
+      } else {
+        interim += transcript;
+      }
+    }
+    latestInterim = interim;
+    if (interim) micStatus.textContent = interim;
+  };
+}
+
+function speakText(text){
+  if (!text || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const speak = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    const match = voices.find(v => v.lang === 'en-US') || voices.find(v => v.lang.startsWith('en'));
+    if (match) utter.voice = match;
+    utter.rate = 1.0;
+    window.speechSynthesis.speak(utter);
+  };
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = speak;
+  } else {
+    speak();
+  }
+}
+
+loadHistory();
+renderHistory();
+</script>
+</body>
+</html>
